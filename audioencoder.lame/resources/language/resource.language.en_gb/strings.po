@@ -59,3 +59,27 @@ msgstr ""
 msgctxt "#30008"
 msgid "{0:d} kHz"
 msgstr ""
+
+#. Setting to select used ID3 version for created mp3's
+#: audioencoder.lame/resources/settings.xml
+msgctxt "#30009"
+msgid "Used ID3 tag version"
+msgstr ""
+
+#. Help text to setting on id 30009
+#: audioencoder.lame/resources/settings.xml
+msgctxt "#30010"
+msgid "To specify the ID3 version used for the created MP3 file."
+msgstr ""
+
+#. Selection field for setting on id 30009
+#: audioencoder.lame/resources/settings.xml
+msgctxt "#30011"
+msgid "ID3v1"
+msgstr ""
+
+#. Selection field for setting on id 30009
+#: audioencoder.lame/resources/settings.xml
+msgctxt "#30012"
+msgid "ID3v2"
+msgstr ""
