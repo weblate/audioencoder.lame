@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <iconv.h>
 #include <kodi/addon-instance/AudioEncoder.h>
 #include <lame/lame.h>
 #include <stdlib.h>
@@ -33,6 +34,8 @@ public:
   bool Finish() override;
 
 private:
+  short unsigned int* ToUtf16(const char* src);
+
   lame_global_flags* m_encoder; ///< lame encoder context
   int m_audio_pos; ///< audio position in file
   uint8_t m_buffer[65536]; ///< buffer for writing out audio data
@@ -105,16 +108,58 @@ bool CEncoderLame::Start(int inChannels,
 
   // Setup the ID3 tagger
   id3tag_init(m_encoder);
-  id3tag_add_v2(m_encoder);
   id3tag_set_title(m_encoder, title.c_str());
   id3tag_set_artist(m_encoder, artist.c_str());
-  id3tag_set_textinfo_latin1(m_encoder, "TPE2", albumartist.c_str());
   id3tag_set_album(m_encoder, album.c_str());
   id3tag_set_year(m_encoder, year.c_str());
   id3tag_set_track(m_encoder, track.c_str());
   int test = id3tag_set_genre(m_encoder, genre.c_str());
   if (test == -1)
     id3tag_set_genre(m_encoder, "Other");
+
+  bool useVer2 = kodi::GetSettingInt("id3version") == 2;
+  if (useVer2)
+  {
+    id3tag_add_v2(m_encoder);
+
+    short unsigned int* value;
+
+    value = ToUtf16(artist.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TPE1", value);
+    free(value);
+
+    value = ToUtf16(title.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TIT2", value);
+    free(value);
+
+    value = ToUtf16(artist.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TPE1", value);
+    free(value);
+
+    value = ToUtf16(albumartist.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TPE2", value);
+    free(value);
+
+    value = ToUtf16(album.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TALB", value);
+    free(value);
+
+    value = ToUtf16(year.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TYER", value);
+    free(value);
+
+    value = ToUtf16(track.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TRCK", value);
+    free(value);
+
+    value = ToUtf16(genre.c_str());
+    id3tag_set_textinfo_utf16(m_encoder, "TCON", value);
+    free(value);
+
+    value = ToUtf16(comment.c_str());
+    id3tag_set_comment_utf16(m_encoder, 0, 0, value);
+    free(value);
+  }
 
   // Now that all the options are set, lame needs to analyze them and
   // set some more internal options and check for problems
@@ -124,7 +169,11 @@ bool CEncoderLame::Start(int inChannels,
   }
 
   // now write the ID3 tag information, storing the position
-  int tag_length = lame_get_id3v2_tag(m_encoder, m_buffer, sizeof(m_buffer));
+  int tag_length;
+  if (useVer2)
+    tag_length = lame_get_id3v2_tag(m_encoder, m_buffer, sizeof(m_buffer));
+  else
+    tag_length = lame_get_id3v1_tag(m_encoder, m_buffer, sizeof(m_buffer));
   if (tag_length)
   {
     Write(m_buffer, tag_length);
@@ -186,6 +235,36 @@ bool CEncoderLame::Finish()
   }
 
   return true;
+}
+
+short unsigned int* CEncoderLame::ToUtf16(const char* src)
+{
+  short unsigned int* dst = 0;
+  if (src != nullptr)
+  {
+    size_t const l = strlen(src);
+    size_t const n = (l + 1) * 4;
+    dst = static_cast<short unsigned int*>(calloc(n + 4, 4));
+    if (dst != 0)
+    {
+      iconv_t xiconv = iconv_open("UTF-16LE//TRANSLIT", "UTF-8");
+      dst[0] = 0xfeff; /* BOM */
+      if (xiconv != (iconv_t)-1)
+      {
+#ifndef _WIN32
+        char* i_ptr = const_cast<char*>(src);
+#else
+        const char* i_ptr = src;
+#endif
+        short unsigned int* o_ptr = &dst[1];
+        size_t srcln = l;
+        size_t avail = n;
+        iconv(xiconv, &i_ptr, &srcln, reinterpret_cast<char**>(&o_ptr), &avail);
+        iconv_close(xiconv);
+      }
+    }
+  }
+  return dst;
 }
 
 //------------------------------------------------------------------------------

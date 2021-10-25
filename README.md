@@ -2,6 +2,8 @@
 
 This is a [Kodi](https://kodi.tv) LAME audio encoder add-on.
 
+Addon uses the [lame library](https://lame.sourceforge.io/) to provide support for Kodi to create mp3 files.
+
 #### CI Testing
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL%20v2+-blue.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.com/xbmc/audioencoder.lame.svg?branch=Nexus)](https://travis-ci.com/xbmc/audioencoder.lame/branches)

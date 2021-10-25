@@ -28,6 +28,16 @@
             <formatlabel>30008</formatlabel>
           </control>
         </setting>
+        <setting id="id3version" type="integer" label="30009" help="30010">
+          <default>2</default>
+          <constraints>
+            <options>
+              <option label="30011">1</option>
+              <option label="30012">2</option>
+            </options>
+          </constraints>
+          <control type="spinner" format="string" />
+        </setting>
       </group>
     </category>
   </section>
