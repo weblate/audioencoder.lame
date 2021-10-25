@@ -24,38 +24,56 @@ msgctxt "Addon Description"
 msgid "It use LAME, the high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL."
 msgstr ""
 
+#. Settings label to select wanted preset of MP3 encoding, possible selection values defined with id's 30002, 30003, 30004 and 30005
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30000"
 msgid "Preset"
 msgstr ""
 
+#. Help text to setting on id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30001"
 msgid "Enables some preconfigured settings"
 msgstr ""
 
+#. Selection value about possible encoding presets, related setting string id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30002"
 msgid "Medium"
 msgstr ""
 
+#. Selection value about possible encoding presets, related setting string id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30003"
 msgid "Standard"
 msgstr ""
 
+#. Selection value about possible encoding presets, related setting string id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30004"
 msgid "Extreme"
 msgstr ""
 
+#. Selection value about possible encoding presets, related setting string id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30005"
 msgid "Constant bitrate"
 msgstr ""
 
+#. Setting to select wanted bitrate. This setting becomes visible if as preset "Constant bitrate" is selected (id 30005).
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30006"
 msgid "Bitrate"
 msgstr ""
 
+#. Help text to setting on id 30006
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30007"
 msgid "The bitrate to be used"
 msgstr ""
 
+#. Format label about selected bitrate with setting on id 30000
+#: audioencoder.lame/resources/settings.xml
 msgctxt "#30008"
 msgid "{0:d} kHz"
 msgstr ""
