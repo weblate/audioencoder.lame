@@ -5,9 +5,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: KODI Addons\n"
-"Report-Msgid-Bugs-To: https://github.com/xbmc/audioencoder.lame/issues/\n"
+"Report-Msgid-Bugs-To: translations@kodi.tv\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2021-09-17 02:30+0000\n"
+"PO-Revision-Date: 2021-10-27 17:15+0000\n"
 "Last-Translator: taxigps <taxigps@sina.com>\n"
 "Language-Team: Chinese (China) <https://kodi.weblate.cloud/projects/kodi-add-ons-audio-decodersencoders/audioencoder-lame/zh_cn/>\n"
 "Language: zh_cn\n"
@@ -73,19 +73,19 @@ msgstr "{0:d} kHz"
 #. Setting to select used ID3 version for created mp3's
 msgctxt "#30009"
 msgid "Used ID3 tag version"
-msgstr ""
+msgstr "使用的 ID3 标签版本"
 
 #. Help text to setting on id 30009
 msgctxt "#30010"
 msgid "To specify the ID3 version used for the created MP3 file."
-msgstr ""
+msgstr "指定用于创建 MP3 文件的 ID3 版本。"
 
 #. Selection field for setting on id 30009
 msgctxt "#30011"
 msgid "ID3v1"
-msgstr ""
+msgstr "ID3v1"
 
 #. Selection field for setting on id 30009
 msgctxt "#30012"
 msgid "ID3v2"
-msgstr ""
+msgstr "ID3v2"
