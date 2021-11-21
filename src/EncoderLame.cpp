@@ -12,25 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-class ATTRIBUTE_HIDDEN CEncoderLame : public kodi::addon::CInstanceAudioEncoder
+class ATTR_DLL_LOCAL CEncoderLame : public kodi::addon::CInstanceAudioEncoder
 {
 public:
   CEncoderLame(KODI_HANDLE instance, const std::string& version);
   ~CEncoderLame() override;
 
-  bool Start(int inChannels,
-             int inRate,
-             int inBits,
-             const std::string& title,
-             const std::string& artist,
-             const std::string& albumartist,
-             const std::string& album,
-             const std::string& year,
-             const std::string& track,
-             const std::string& genre,
-             const std::string& comment,
-             int trackLength) override;
-  int Encode(int numBytesRead, const uint8_t* stream) override;
+  bool Start(const kodi::addon::AudioEncoderInfoTag& tag) override;
+  ssize_t Encode(const uint8_t* stream, size_t numBytesRead) override;
   bool Finish() override;
 
 private:
@@ -78,42 +67,31 @@ CEncoderLame::~CEncoderLame()
   lame_close(m_encoder);
 }
 
-bool CEncoderLame::Start(int inChannels,
-                         int inRate,
-                         int inBits,
-                         const std::string& title,
-                         const std::string& artist,
-                         const std::string& albumartist,
-                         const std::string& album,
-                         const std::string& year,
-                         const std::string& track,
-                         const std::string& genre,
-                         const std::string& comment,
-                         int trackLength)
+bool CEncoderLame::Start(const kodi::addon::AudioEncoderInfoTag& tag)
 {
   if (!m_encoder)
     return false;
 
   // we accept only 2 ch 16 bit atm
-  if (inChannels != 2 || inBits != 16)
+  if (tag.GetChannels() != 2 || tag.GetBitsPerSample() != 16)
   {
     kodi::Log(ADDON_LOG_ERROR, "Invalid input format to encode");
     return false;
   }
 
-  lame_set_in_samplerate(m_encoder, inRate);
+  lame_set_in_samplerate(m_encoder, tag.GetSamplerate());
 
   // disable automatic ID3 tag writing - we'll write ourselves
   lame_set_write_id3tag_automatic(m_encoder, 0);
 
   // Setup the ID3 tagger
   id3tag_init(m_encoder);
-  id3tag_set_title(m_encoder, title.c_str());
-  id3tag_set_artist(m_encoder, artist.c_str());
-  id3tag_set_album(m_encoder, album.c_str());
-  id3tag_set_year(m_encoder, year.c_str());
-  id3tag_set_track(m_encoder, track.c_str());
-  int test = id3tag_set_genre(m_encoder, genre.c_str());
+  id3tag_set_title(m_encoder, tag.GetTitle().c_str());
+  id3tag_set_artist(m_encoder, tag.GetArtist().c_str());
+  id3tag_set_album(m_encoder, tag.GetAlbum().c_str());
+  id3tag_set_year(m_encoder, tag.GetReleaseDate().c_str());
+  id3tag_set_track(m_encoder, std::to_string(tag.GetTrack()).c_str());
+  int test = id3tag_set_genre(m_encoder, tag.GetGenre().c_str());
   if (test == -1)
     id3tag_set_genre(m_encoder, "Other");
 
@@ -124,39 +102,39 @@ bool CEncoderLame::Start(int inChannels,
 
     short unsigned int* value;
 
-    value = ToUtf16(artist.c_str());
+    value = ToUtf16(tag.GetArtist().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TPE1", value);
     free(value);
 
-    value = ToUtf16(title.c_str());
+    value = ToUtf16(tag.GetTitle().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TIT2", value);
     free(value);
 
-    value = ToUtf16(artist.c_str());
+    value = ToUtf16(tag.GetArtist().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TPE1", value);
     free(value);
 
-    value = ToUtf16(albumartist.c_str());
+    value = ToUtf16(tag.GetAlbumArtist().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TPE2", value);
     free(value);
 
-    value = ToUtf16(album.c_str());
+    value = ToUtf16(tag.GetAlbum().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TALB", value);
     free(value);
 
-    value = ToUtf16(year.c_str());
+    value = ToUtf16(tag.GetReleaseDate().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TYER", value);
     free(value);
 
-    value = ToUtf16(track.c_str());
+    value = ToUtf16(std::to_string(tag.GetTrack()).c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TRCK", value);
     free(value);
 
-    value = ToUtf16(genre.c_str());
+    value = ToUtf16(tag.GetGenre().c_str());
     id3tag_set_textinfo_utf16(m_encoder, "TCON", value);
     free(value);
 
-    value = ToUtf16(comment.c_str());
+    value = ToUtf16(tag.GetComment().c_str());
     id3tag_set_comment_utf16(m_encoder, 0, 0, value);
     free(value);
   }
@@ -183,18 +161,18 @@ bool CEncoderLame::Start(int inChannels,
   return true;
 }
 
-int CEncoderLame::Encode(int numBytesRead, const uint8_t* stream)
+ssize_t CEncoderLame::Encode(const uint8_t* stream, size_t numBytesRead)
 {
   if (!m_encoder)
     return -1;
 
   // note: assumes 2ch 16bit atm
-  const int bytes_per_frame = 2 * 2;
+  const size_t bytes_per_frame = 2 * 2;
 
-  int bytes_left = numBytesRead;
+  size_t bytes_left = numBytesRead;
   while (bytes_left)
   {
-    const int frames = std::min(bytes_left / bytes_per_frame, 4096);
+    const size_t frames = std::min(bytes_left / bytes_per_frame, size_t(4096));
 
     int written = lame_encode_buffer_interleaved(m_encoder, (short*)stream, frames, m_buffer,
                                                  sizeof(m_buffer));
@@ -269,7 +247,7 @@ short unsigned int* CEncoderLame::ToUtf16(const char* src)
 
 //------------------------------------------------------------------------------
 
-class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
+class ATTR_DLL_LOCAL CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() = default;
