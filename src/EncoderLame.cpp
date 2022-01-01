@@ -15,7 +15,7 @@
 class ATTR_DLL_LOCAL CEncoderLame : public kodi::addon::CInstanceAudioEncoder
 {
 public:
-  CEncoderLame(KODI_HANDLE instance, const std::string& version);
+  CEncoderLame(const kodi::addon::IInstanceInfo& instance);
   ~CEncoderLame() override;
 
   bool Start(const kodi::addon::AudioEncoderInfoTag& tag) override;
@@ -33,8 +33,8 @@ private:
 };
 
 
-CEncoderLame::CEncoderLame(KODI_HANDLE instance, const std::string& version)
-  : CInstanceAudioEncoder(instance, version), m_audio_pos(0), m_preset(-1)
+CEncoderLame::CEncoderLame(const kodi::addon::IInstanceInfo& instance)
+  : CInstanceAudioEncoder(instance), m_audio_pos(0), m_preset(-1)
 {
   m_encoder = lame_init();
   if (!m_encoder)
@@ -43,7 +43,7 @@ CEncoderLame::CEncoderLame(KODI_HANDLE instance, const std::string& version)
     return;
   }
 
-  int value = kodi::GetSettingInt("preset");
+  int value = kodi::addon::GetSettingInt("preset");
   if (value == 0)
     m_preset = MEDIUM;
   else if (value == 1)
@@ -51,7 +51,7 @@ CEncoderLame::CEncoderLame(KODI_HANDLE instance, const std::string& version)
   else if (value == 2)
     m_preset = EXTREME;
 
-  m_bitrate = 128 + 32 * kodi::GetSettingInt("bitrate");
+  m_bitrate = 128 + 32 * kodi::addon::GetSettingInt("bitrate");
 
   if (m_preset == -1)
     lame_set_brate(m_encoder, m_bitrate);
@@ -95,7 +95,7 @@ bool CEncoderLame::Start(const kodi::addon::AudioEncoderInfoTag& tag)
   if (test == -1)
     id3tag_set_genre(m_encoder, "Other");
 
-  bool useVer2 = kodi::GetSettingInt("id3version") == 2;
+  bool useVer2 = kodi::addon::GetSettingInt("id3version") == 2;
   if (useVer2)
   {
     id3tag_add_v2(m_encoder);
@@ -251,20 +251,14 @@ class ATTR_DLL_LOCAL CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() = default;
-  ADDON_STATUS CreateInstance(int instanceType,
-                              const std::string& instanceID,
-                              KODI_HANDLE instance,
-                              const std::string& version,
-                              KODI_HANDLE& addonInstance) override;
+  ADDON_STATUS CreateInstance(const kodi::addon::IInstanceInfo& instance,
+                              KODI_ADDON_INSTANCE_HDL& hdl) override;
 };
 
-ADDON_STATUS CMyAddon::CreateInstance(int instanceType,
-                                      const std::string& instanceID,
-                                      KODI_HANDLE instance,
-                                      const std::string& version,
-                                      KODI_HANDLE& addonInstance)
+ADDON_STATUS CMyAddon::CreateInstance(const kodi::addon::IInstanceInfo& instance,
+                                      KODI_ADDON_INSTANCE_HDL& hdl)
 {
-  addonInstance = new CEncoderLame(instance, version);
+  hdl = new CEncoderLame(instance);
   return ADDON_STATUS_OK;
 }
 
